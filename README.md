@@ -19,7 +19,8 @@ first live test. Treat it as a development build rather than a final stable rele
 1. Use Minecraft `1.21.1`, Fabric Loader `>=0.18.0`, Fabric API
    `>=0.116.7+1.21.1`, Cobblemon `1.8.2`, and Java `21` or newer.
 2. Download `collection-exporter-0.3.0-dev.1.jar` from the
-   [Collection Exporter release](https://github.com/SwampDad/collection-exporter/releases/tag/collection-exporter-v0.3.0-dev.1).
+   [Collection Exporter releases](https://github.com/SwampDad/collection-exporter/releases).
+   Development/test builds are published as prereleases.
 3. Put the JAR in the client instance's `mods` folder.
 4. Restart Minecraft. No server installation is required.
 
