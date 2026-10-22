@@ -54,8 +54,45 @@ class ReportEngineTest {
         ReportIssue issue = result.unresolved().get(0);
         assertEquals("Gyarados", issue.displayName());
         assertEquals("Unrecognized aspect", issue.reason());
-        assertEquals(List.of("magikarp-jump-standard", "gyarados-eye-color-red"), issue.aspects());
+        assertEquals(List.of("mystery-token", "second-mystery"), issue.aspects());
         assertEquals(1, issue.count());
+    }
+
+    @Test
+    void onePokemonWithTwoUnresolvedReasonsIsStillOneInstance() {
+        ReportResult result = engine.build(TestFixtures.unresolvedMixedTokenInventory(),
+                ReportRequest.of(ReportCategory.ALL));
+        assertEquals(1, result.summary().unresolvedInstances());
+        assertEquals(2, result.unresolved().size());
+        assertTrue(result.unresolved().stream().allMatch(issue -> issue.displayName().equals("Eevee")));
+        assertTrue(result.unresolved().stream().anyMatch(issue ->
+                issue.reason().equals("Potential new skin (year token)")
+                        && issue.aspects().equals(List.of("future2027skin"))));
+        assertTrue(result.unresolved().stream().anyMatch(issue ->
+                issue.reason().equals("Unrecognized aspect")
+                        && issue.aspects().equals(List.of("mystery-token"))));
+    }
+
+    @Test
+    void unknownAspectOnResolvedSkinIsStillReported() {
+        ReportResult result = engine.build(TestFixtures.exampleInventory(),
+                ReportRequest.of(ReportCategory.SKINS));
+        assertTrue(result.unresolved().stream().anyMatch(issue ->
+                issue.displayName().equals("Aegislash")
+                        && issue.aspects().contains("totally_unknown_secondary")));
+    }
+
+    @Test
+    void unresolvedNonSelectedPokemonStillSurfaces() {
+        ReportResult result = engine.build(TestFixtures.unselectedUnresolvedInventory(),
+                ReportRequest.of(ReportCategory.SKINS, ReportCategory.LEGEND_MYTH, ReportCategory.SHINY));
+        assertTrue(result.isEmpty());
+        assertEquals(0, result.summary().includedInstances());
+        assertEquals(1, result.summary().unresolvedInstances());
+        assertEquals(1, result.unresolved().size());
+        assertEquals("Eevee", result.unresolved().get(0).displayName());
+        assertEquals("Potential new skin (year token)", result.unresolved().get(0).reason());
+        assertEquals(List.of("future2027skin"), result.unresolved().get(0).aspects());
     }
 
     @Test
@@ -108,7 +145,9 @@ class ReportEngineTest {
         assertTrue(result.legendMyth().isEmpty());
         assertTrue(result.shiny().isEmpty());
         assertTrue(result.other().isEmpty());
-        assertEquals("Neon", result.skinGroups().get(2).family().displayName());
+        assertEquals(List.of("Easter", "Petal", "Relic", "Neon", "Kimono", "Western",
+                        "Crystal", "Spooky"),
+                result.skinGroups().stream().map(group -> group.family().displayName()).toList());
     }
 
     @Test
@@ -129,6 +168,18 @@ class ReportEngineTest {
         assertEquals(1, result.summary().conflictInstances());
         assertEquals(1, result.other().size());
         assertTrue(result.diagnostics().stream().anyMatch(line -> line.contains("skin conflict")));
+    }
+
+    @Test
+    void adventureZoroarkAppearsUnderDefaultSkinsFilter() {
+        ReportResult result = engine.build(TestFixtures.adventureZoroarkInventory(),
+                ReportRequest.of(ReportCategory.SKINS, ReportCategory.LEGEND_MYTH, ReportCategory.SHINY));
+        assertEquals(1, result.summary().includedInstances());
+        assertEquals(1, result.summary().skinInstances());
+        assertEquals(1, result.skinGroups().size());
+        assertEquals("Adventure", result.skinGroups().get(0).family().displayName());
+        assertEquals("Zoroark", result.skinGroups().get(0).nonShiny().get(0).displayName());
+        assertTrue(result.unresolved().isEmpty());
     }
 
     @Test

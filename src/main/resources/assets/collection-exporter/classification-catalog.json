@@ -1,36 +1,29 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-21T00:30:00.888334+00:00",
+  "generatedAt": "2026-10-22T09:05:37.446242+00:00",
   "provenance": {
-    "generatedAt": "2026-10-21T00:30:00.888795+00:00",
+    "generatedAt": "2026-10-22T09:05:37.446987+00:00",
     "cobblemonJar": "Cobblemon-fabric-1.8.2+1.21.1.jar",
     "cobblemonJarSha256": "cae8ac328b61354fbe415208b8c6ffc12e7155094d0a87082e85e7914fb380c2",
     "speciesDataGlob": "data/cobblemon/species/**/*.json",
     "skinRegistry": {
-      "path": "reviewed Cobblemon Town skin registry (not bundled)",
+      "path": "reviewed skin registry (not bundled)",
       "sha256": "cc9247272f9197549fe3af264a233f3b8e3c29069fb6ed5ccb4c663c5aa02cfb",
       "schemaVersion": "2.1.0",
       "generatedAt": "2026-10-19T23:43:21+00:00"
     },
     "ownerCorrections": [
       "easter2026 is a confirmed Easter skin identity.",
+      "adventure2026 is the confirmed Adventure skin family aspect.",
+      "mario2026 is the confirmed Mario skin family aspect.",
       "radiation is not a skin.",
       "archelian is a form, not a skin.",
       "alatian is a form, not a skin.",
       "tron2026 is the runtime aspect for the official Neon collection; Tron is an alias.",
       "Mega, alpha, gmax, and other gameplay/form aspects are not automatically skins.",
-      "Unknown aspects are not automatically skins."
-    ],
-    "snapshot": {
-      "path": "historical PC Exporter snapshot (not bundled)",
-      "sha256": "dcdf7a20daefc9330aa396f18f2db60470d91238c61bd1c150bd2e25b7eb068f",
-      "schemaVersion": 1,
-      "producer": "pc-exporter",
-      "producerVersion": "0.2.0",
-      "generatedAt": "2026-10-17T20:28:05.174680Z",
-      "entryCount": 619,
-      "completeness": "complete-synchronized-store"
-    }
+      "Unknown aspects are not automatically skins.",
+      "Magikarp Jump patterns, Gyarados eye colors, and Slowpoke regrown-tail values are appearance/form variants, not skins."
+    ]
   },
   "neutralAspects": [
     "male",
@@ -40,22 +33,49 @@
   ],
   "skins": [
     {
-      "aspect": "october2026spooky",
-      "officialName": "October 2026 Spooky Set",
-      "displayName": "Spooky",
+      "aspect": "mario2026",
+      "officialName": "Mario Skin Set",
+      "displayName": "Mario",
       "aliases": [],
       "identityStatus": "confirmed",
-      "evidenceStatus": "proposed",
+      "evidenceStatus": "candidate",
       "reportOrder": 1
     },
     {
-      "aspect": "september2026crystall",
-      "officialName": "September 2026 Crystal Set",
-      "displayName": "Crystal",
+      "aspect": "adventure2026",
+      "officialName": "Adventure Skin Set",
+      "displayName": "Adventure",
+      "aliases": [],
+      "identityStatus": "confirmed",
+      "evidenceStatus": "candidate",
+      "reportOrder": 2
+    },
+    {
+      "aspect": "easter2026",
+      "officialName": "Easter",
+      "displayName": "Easter",
+      "aliases": [],
+      "identityStatus": "confirmed",
+      "evidenceStatus": "candidate",
+      "reportOrder": 3
+    },
+    {
+      "aspect": "petal2026",
+      "officialName": "April 2026 Petal Set",
+      "displayName": "Petal",
       "aliases": [],
       "identityStatus": "confirmed",
       "evidenceStatus": "reviewed",
-      "reportOrder": 2
+      "reportOrder": 4
+    },
+    {
+      "aspect": "relic2026",
+      "officialName": "May 2026 Relic Set",
+      "displayName": "Relic",
+      "aliases": [],
+      "identityStatus": "confirmed",
+      "evidenceStatus": "reviewed",
+      "reportOrder": 5
     },
     {
       "aspect": "tron2026",
@@ -66,7 +86,16 @@
       ],
       "identityStatus": "confirmed",
       "evidenceStatus": "proposed",
-      "reportOrder": 3
+      "reportOrder": 6
+    },
+    {
+      "aspect": "july2026kimono",
+      "officialName": "July 2026 Kimono Set",
+      "displayName": "Kimono",
+      "aliases": [],
+      "identityStatus": "confirmed",
+      "evidenceStatus": "reviewed",
+      "reportOrder": 7
     },
     {
       "aspect": "august2026western",
@@ -77,43 +106,25 @@
       ],
       "identityStatus": "confirmed",
       "evidenceStatus": "reviewed",
-      "reportOrder": 4
-    },
-    {
-      "aspect": "petal2026",
-      "officialName": "April 2026 Petal Set",
-      "displayName": "Petal",
-      "aliases": [],
-      "identityStatus": "confirmed",
-      "evidenceStatus": "reviewed",
-      "reportOrder": 5
-    },
-    {
-      "aspect": "july2026kimono",
-      "officialName": "July 2026 Kimono Set",
-      "displayName": "Kimono",
-      "aliases": [],
-      "identityStatus": "confirmed",
-      "evidenceStatus": "reviewed",
-      "reportOrder": 6
-    },
-    {
-      "aspect": "relic2026",
-      "officialName": "May 2026 Relic Set",
-      "displayName": "Relic",
-      "aliases": [],
-      "identityStatus": "confirmed",
-      "evidenceStatus": "reviewed",
-      "reportOrder": 7
-    },
-    {
-      "aspect": "easter2026",
-      "officialName": "Easter",
-      "displayName": "Easter",
-      "aliases": [],
-      "identityStatus": "confirmed",
-      "evidenceStatus": "candidate",
       "reportOrder": 8
+    },
+    {
+      "aspect": "september2026crystall",
+      "officialName": "September 2026 Crystal Set",
+      "displayName": "Crystal",
+      "aliases": [],
+      "identityStatus": "confirmed",
+      "evidenceStatus": "reviewed",
+      "reportOrder": 9
+    },
+    {
+      "aspect": "october2026spooky",
+      "officialName": "October 2026 Spooky Set",
+      "displayName": "Spooky",
+      "aliases": [],
+      "identityStatus": "confirmed",
+      "evidenceStatus": "proposed",
+      "reportOrder": 10
     }
   ],
   "nonSkinAspects": [
@@ -292,46 +303,49 @@
     {
       "aspect": "fished",
       "reason": "gameplay acquisition marker, not a skin family"
-    }
-  ],
-  "unresolvedAspects": [
+    },
+    {
+      "aspect": "ranked",
+      "reason": "ranked-reward marker, not a skin family"
+    },
     {
       "aspect": "magikarp-jump-standard",
-      "reason": "observed event/appearance token; skin status not owner-approved"
+      "reason": "Magikarp Jump appearance pattern, not a skin family"
     },
     {
       "aspect": "magikarp-jump-blue-saucy",
-      "reason": "observed event/appearance token; skin status not owner-approved"
+      "reason": "Magikarp Jump appearance pattern, not a skin family"
     },
     {
       "aspect": "magikarp-jump-pink-dapples",
-      "reason": "observed event/appearance token; skin status not owner-approved"
+      "reason": "Magikarp Jump appearance pattern, not a skin family"
     },
     {
       "aspect": "magikarp-jump-blue-raindrops",
-      "reason": "observed event/appearance token; skin status not owner-approved"
+      "reason": "Magikarp Jump appearance pattern, not a skin family"
     },
     {
       "aspect": "gyarados-eye-color-purple",
-      "reason": "observed appearance token; skin status not owner-approved"
+      "reason": "Gyarados eye-color appearance variant, not a skin family"
     },
     {
       "aspect": "gyarados-eye-color-red",
-      "reason": "observed appearance token; skin status not owner-approved"
+      "reason": "Gyarados eye-color appearance variant, not a skin family"
     },
     {
       "aspect": "regrown-tail-1",
-      "reason": "observed appearance token; skin status not owner-approved"
+      "reason": "Slowpoke regrown-tail appearance state, not a skin family"
     },
     {
       "aspect": "regrown-tail-2",
-      "reason": "observed appearance token; skin status not owner-approved"
+      "reason": "Slowpoke regrown-tail appearance state, not a skin family"
     },
     {
       "aspect": "regrown-tail-3",
-      "reason": "observed appearance token; skin status not owner-approved"
+      "reason": "Slowpoke regrown-tail appearance state, not a skin family"
     }
   ],
+  "unresolvedAspects": [],
   "categories": {
     "legendary": [
       {

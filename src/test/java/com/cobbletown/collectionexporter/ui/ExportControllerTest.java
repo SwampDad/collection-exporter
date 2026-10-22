@@ -4,12 +4,17 @@ import com.cobbletown.collectionexporter.TestFixtures;
 import com.cobbletown.collectionexporter.classify.ClassificationCatalogLoader;
 import com.cobbletown.collectionexporter.clipboard.ClipboardResult;
 import com.cobbletown.collectionexporter.clipboard.ClipboardService;
+import com.cobbletown.collectionexporter.data.PcInventorySnapshot;
+import com.cobbletown.collectionexporter.data.PokemonRecord;
 import com.cobbletown.collectionexporter.report.ReportCategory;
 import com.cobbletown.collectionexporter.report.ReportEngine;
 import com.cobbletown.collectionexporter.report.ReportRequest;
 import com.cobbletown.collectionexporter.report.ReportTextFormatter;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +60,37 @@ class ExportControllerTest {
         controller.rebuild(ReportRequest.of(ReportCategory.SKINS));
         assertEquals(1, reads.get());
         assertEquals(30, controller.lastReport().summary().skinInstances());
+    }
+
+    @Test
+    void refreshUsesNewLocationsFromTheNewSnapshot() {
+        PcInventorySnapshot original = TestFixtures.locationInventory();
+        AtomicReference<PcInventorySnapshot> current = new AtomicReference<>(original);
+        ExportController controller = new ExportController(
+                current::get,
+                new ReportEngine(ClassificationCatalogLoader.loadDefault()),
+                new ReportTextFormatter(),
+                text -> ClipboardResult.success(text.length()));
+        ReportRequest request = new ReportRequest(
+                Set.of(ReportCategory.SKINS, ReportCategory.LEGEND_MYTH, ReportCategory.SHINY),
+                true, false, true);
+
+        controller.refresh(request);
+        assertTrue(controller.lastText().contains("Zoroark — Box 3, Pos. 13"));
+
+        List<PokemonRecord> moved = new ArrayList<>(original.entries());
+        PokemonRecord zoroark = moved.get(0);
+        moved.set(0, new PokemonRecord(zoroark.uuid(), 4, 3, zoroark.speciesId(),
+                zoroark.speciesName(), zoroark.dexNumber(), zoroark.formId(), zoroark.formName(),
+                zoroark.aspects(), zoroark.shiny(), zoroark.level(), zoroark.gender(),
+                zoroark.nickname()));
+        current.set(new PcInventorySnapshot(original.capturedAt(), original.source(),
+                original.storeUuid(), original.completeness(), original.boxCount(),
+                original.observedBoxCount(), moved, original.diagnostics()));
+
+        controller.refresh(request);
+        assertTrue(controller.lastText().contains("Zoroark — Box 5, Pos. 4"));
+        assertFalse(controller.lastText().contains("Zoroark — Box 3, Pos. 13"));
     }
 
     @Test

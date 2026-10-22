@@ -24,6 +24,33 @@ class ClassificationServiceTest {
     }
 
     @Test
+    void adventureZoroarkResolvesToAdventureAndKeepsRankedMarker() {
+        ClassifiedPokemon result = service.classify(record("cobblemon:zoroark", "Zoroark",
+                List.of("male", "adventure2026", "ranked"), false));
+        assertTrue(result.hasSkin());
+        assertEquals("Adventure", result.skin().family().displayName());
+        assertTrue(result.unknownAspects().isEmpty());
+        assertTrue(result.nonSkinAspects().contains("ranked"));
+    }
+
+    @Test
+    void unverifiedZoroartTokenRemainsUnknown() {
+        ClassifiedPokemon result = service.classify(record("cobblemon:zoroark", "Zoroark",
+                List.of("male", "zoroart"), false));
+        assertFalse(result.hasSkin());
+        assertEquals(SkinResolutionStatus.UNRESOLVED, result.skin().status());
+        assertTrue(result.unknownAspects().contains("zoroart"));
+    }
+
+    @Test
+    void mario2026ResolvesToMario() {
+        ClassifiedPokemon result = service.classify(record("cobblemon:charmander", "Charmander",
+                List.of("male", "mario2026"), false));
+        assertTrue(result.hasSkin());
+        assertEquals("Mario", result.skin().family().displayName());
+    }
+
+    @Test
     void radiationBreloomIsNotASkin() {
         ClassifiedPokemon result = service.classify(record("cobblemon:breloom", "Breloom",
                 List.of("male", "radiation"), false));
@@ -79,9 +106,27 @@ class ClassificationServiceTest {
     }
 
     @Test
-    void observedButUnapprovedTokenIsUnresolved() {
-        ClassifiedPokemon result = service.classify(record("cobblemon:magikarp", "Magikarp",
+    void knownAppearanceTokensAreNotUnresolved() {
+        ClassifiedPokemon magikarp = service.classify(record("cobblemon:magikarp", "Magikarp",
                 List.of("male", "magikarp-jump-standard"), false));
+        assertEquals(SkinResolutionStatus.NONE, magikarp.skin().status());
+        assertTrue(magikarp.nonSkinAspects().contains("magikarp-jump-standard"));
+
+        ClassifiedPokemon gyarados = service.classify(record("cobblemon:gyarados", "Gyarados",
+                List.of("male", "gyarados-eye-color-red"), false));
+        assertEquals(SkinResolutionStatus.NONE, gyarados.skin().status());
+        assertTrue(gyarados.nonSkinAspects().contains("gyarados-eye-color-red"));
+
+        ClassifiedPokemon slowpoke = service.classify(record("cobblemon:slowpoke", "Slowpoke",
+                List.of("male", "regrown-tail-3"), false));
+        assertEquals(SkinResolutionStatus.NONE, slowpoke.skin().status());
+        assertTrue(slowpoke.nonSkinAspects().contains("regrown-tail-3"));
+    }
+
+    @Test
+    void unknownNonYearTokenIsStillUnresolved() {
+        ClassifiedPokemon result = service.classify(record("cobblemon:magikarp", "Magikarp",
+                List.of("male", "mystery-token"), false));
         assertFalse(result.hasSkin());
         assertEquals(SkinResolutionStatus.UNRESOLVED, result.skin().status());
     }

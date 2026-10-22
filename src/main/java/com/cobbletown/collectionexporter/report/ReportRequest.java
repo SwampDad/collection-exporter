@@ -8,7 +8,8 @@ import java.util.Set;
 public record ReportRequest(
         Set<ReportCategory> categories,
         boolean includeCounts,
-        boolean includeDiagnostics
+        boolean includeDiagnostics,
+        boolean includeLocations
 ) {
     public ReportRequest {
         Objects.requireNonNull(categories, "categories");
@@ -17,12 +18,19 @@ public record ReportRequest(
         categories = java.util.Collections.unmodifiableSet(copy);
     }
 
+    /** Backward-compatible constructor with PC locations disabled. */
+    public ReportRequest(Set<ReportCategory> categories,
+                         boolean includeCounts,
+                         boolean includeDiagnostics) {
+        this(categories, includeCounts, includeDiagnostics, false);
+    }
+
     public static ReportRequest of(ReportCategory... categories) {
         EnumSet<ReportCategory> selected = EnumSet.noneOf(ReportCategory.class);
         for (ReportCategory category : categories) {
             selected.add(category);
         }
-        return new ReportRequest(selected, true, false);
+        return new ReportRequest(selected, true, false, false);
     }
 
     public boolean selects(ReportCategory category) {

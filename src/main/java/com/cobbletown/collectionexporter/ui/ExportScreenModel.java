@@ -22,6 +22,7 @@ public final class ExportScreenModel {
     private final FilterSelection filters = FilterSelection.defaults();
     private boolean includeCounts = true;
     private boolean includeDiagnostics;
+    private boolean showLocations;
     private ReportResult report;
     private String reportText;
     private ClipboardResult clipboardResult;
@@ -79,8 +80,17 @@ public final class ExportScreenModel {
         this.includeDiagnostics = includeDiagnostics;
     }
 
+    public boolean showLocations() {
+        return showLocations;
+    }
+
+    /** Presentation-only toggle; does not change category selection or inventory membership. */
+    public void setShowLocations(boolean showLocations) {
+        this.showLocations = showLocations;
+    }
+
     public ReportRequest request() {
-        return new ReportRequest(filters.asSet(), includeCounts, includeDiagnostics);
+        return new ReportRequest(filters.asSet(), includeCounts, includeDiagnostics, showLocations);
     }
 
     public ReportResult refresh(ExportController controller) {

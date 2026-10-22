@@ -44,10 +44,12 @@ class ReportTextFormatterTest {
                 ReportRequest.of(ReportCategory.ALL));
 
         assertTrue(text.contains("CUSTOM SKINS\n" + "─".repeat(44)));
-        assertTrue(text.contains("Neon\n    Shiny: Dragapult, Tyrantrum\n"
-                + "    Non-Shiny: Entei (Legendary), Mewtwo (Legendary), Pelipper, Tropius"));
-        assertTrue(text.contains("Western\n    Shiny: Jynx\n"
-                + "    Non-Shiny: Jynx, Machamp, Venusaur ×2"));
+        assertTrue(text.contains("Neon\n    Shiny Dragapult\n    Shiny Tyrantrum\n"
+                + "    Entei (Legendary)\n    Mewtwo (Legendary)\n    Pelipper\n    Tropius"));
+        assertTrue(text.contains("Western\n    Shiny Jynx\n    Jynx\n    Machamp\n"
+                + "    Venusaur ×2"));
+        assertFalse(text.contains("    Shiny:"));
+        assertFalse(text.contains("    Non-Shiny:"));
         assertTrue(text.contains("SHINY\n" + "─".repeat(44) + "\n  Pikachu\n"));
         assertFalse(text.contains("Pikachu (Shiny)"));
         assertFalse(text.contains("Dragapult (Shiny)"));
@@ -77,7 +79,20 @@ class ReportTextFormatterTest {
 
         assertTrue(text.contains("UNRESOLVED\n" + "─".repeat(44)));
         assertTrue(text.contains("  Gyarados\n    Reason: Unrecognized aspect\n"
-                + "    Aspect: magikarp-jump-standard, gyarados-eye-color-red"));
+                + "    Aspect: mystery-token, second-mystery"));
+    }
+
+    @Test
+    void detailedReportPreservesBothReasonsForTheSamePokemon() {
+        String text = formatter.format(
+                engine.build(TestFixtures.unresolvedMixedTokenInventory(),
+                        ReportRequest.of(ReportCategory.ALL)),
+                ReportRequest.of(ReportCategory.ALL));
+
+        assertTrue(text.contains("  Eevee\n    Reason: Potential new skin (year token)\n"
+                + "    Aspect: future2027skin"));
+        assertTrue(text.contains("  Eevee\n    Reason: Unrecognized aspect\n"
+                + "    Aspect: mystery-token"));
     }
 
     @Test
@@ -95,12 +110,53 @@ class ReportTextFormatterTest {
         assertTrue(text.contains("Legendary: 2"));
         assertTrue(text.contains("Mythical: 1"));
         assertTrue(text.contains("Shiny Pokémon: 14"));
-        assertTrue(text.contains("Unresolved: 1"));
+        assertTrue(text.contains("Unresolved: 2"));
+        assertTrue(text.contains("Aspect: totally_unknown_secondary"));
+        assertTrue(text.contains("Aspect: totally_unknown_token"));
         assertTrue(text.contains("Other Pokémon: 5"));
         assertFalse(text.contains("Paradox: 0"));
         assertFalse(text.contains("Ultra Beasts: 0"));
         assertFalse(text.contains("Included instances"));
         assertFalse(text.contains("instances"));
+    }
+
+    @Test
+    void unresolvedSectionAppearsEvenWhenNoPokemonMatchedFilters() {
+        ReportRequest request = ReportRequest.of(
+                ReportCategory.SKINS, ReportCategory.LEGEND_MYTH, ReportCategory.SHINY);
+        String text = formatter.format(
+                engine.build(TestFixtures.unselectedUnresolvedInventory(), request), request);
+        assertTrue(text.contains("No Pokémon matched the selected categories."));
+        assertTrue(text.contains("UNRESOLVED\n" + "─".repeat(44)));
+        assertTrue(text.contains("  Eevee\n    Reason: Potential new skin (year token)\n    Aspect: future2027skin"));
+        assertTrue(text.contains("Unresolved: 1"));
+    }
+
+    @Test
+    void locationsAreIncludedInClipboardOutputWhenEnabled() {
+        ReportRequest request = new ReportRequest(
+                Set.of(ReportCategory.SKINS, ReportCategory.LEGEND_MYTH, ReportCategory.SHINY),
+                true, false, true);
+        String text = formatter.format(
+                engine.build(TestFixtures.locationInventory(), request), request);
+
+        assertTrue(text.contains("  Spooky\n    Tinkaton\n"
+                + "      Box 3, Pos. 23\n      Box 7, Pos. 22"));
+        assertTrue(text.contains("  Adventure\n    Zoroark — Box 3, Pos. 13"));
+        assertTrue(text.contains("Zoroark — Box 3, Pos. 13"));
+        assertFalse(text.contains("Tinkaton ×2"));
+    }
+
+    @Test
+    void locationsAreAbsentFromClipboardOutputWhenDisabled() {
+        ReportRequest request = new ReportRequest(
+                Set.of(ReportCategory.SKINS, ReportCategory.LEGEND_MYTH, ReportCategory.SHINY),
+                true, false, false);
+        String text = formatter.format(
+                engine.build(TestFixtures.locationInventory(), request), request);
+        assertTrue(text.contains("Tinkaton ×2"));
+        assertTrue(text.contains("Zoroark"));
+        assertFalse(text.contains("Box "));
     }
 
     @Test

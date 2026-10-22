@@ -1,0 +1,2 @@
+b2b0e2dfaa2b305611b5b41251813a1c0c246ad5f13c964c37a8d63a387284d2  release/collection-exporter-0.3.0.jar
+b2b0e2dfaa2b305611b5b41251813a1c0c246ad5f13c964c37a8d63a387284d2  release/collection-exporter.jar

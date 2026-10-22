@@ -17,7 +17,7 @@ class ClassificationCatalogTest {
         assertEquals("Cobblemon-fabric-1.8.2+1.21.1.jar", catalog.provenance().cobblemonJar());
         assertFalse(catalog.provenance().cobblemonJarSha256().isBlank());
         assertFalse(catalog.provenance().skinRegistrySha256().isBlank());
-        assertEquals(8, catalog.skins().size());
+        assertEquals(10, catalog.skins().size());
     }
 
     @Test
@@ -26,6 +26,23 @@ class ClassificationCatalogTest {
         assertNotNull(easter);
         assertEquals("Easter", easter.displayName());
         assertTrue(easter.identityConfirmed());
+    }
+
+    @Test
+    void marioIsAConfirmedSkin() {
+        SkinFamily mario = catalog.skin("mario2026");
+        assertNotNull(mario);
+        assertEquals("Mario", mario.displayName());
+        assertTrue(mario.identityConfirmed());
+        assertEquals(1, mario.reportOrder());
+    }
+
+    @Test
+    void adventureIsAConfirmedSkin() {
+        SkinFamily adventure = catalog.skin("adventure2026");
+        assertNotNull(adventure);
+        assertEquals("Adventure", adventure.displayName());
+        assertTrue(adventure.identityConfirmed());
     }
 
     @Test
@@ -45,6 +62,9 @@ class ClassificationCatalogTest {
         assertTrue(catalog.nonSkinAspects().contains("mega"));
         assertTrue(catalog.nonSkinAspects().contains("alpha"));
         assertTrue(catalog.nonSkinAspects().contains("gmax"));
+        assertTrue(catalog.nonSkinAspects().contains("magikarp-jump-standard"));
+        assertTrue(catalog.nonSkinAspects().contains("gyarados-eye-color-red"));
+        assertTrue(catalog.nonSkinAspects().contains("regrown-tail-3"));
     }
 
     @Test

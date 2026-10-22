@@ -6,7 +6,9 @@ import com.cobbletown.collectionexporter.report.ReportIssue;
 import com.cobbletown.collectionexporter.report.ReportResult;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.ToIntFunction;
 
 /** Pure user-facing text for the export screen. Kept separate so states are unit-tested. */
@@ -73,10 +75,11 @@ public final class ExportStatusText {
             return "";
         }
         int count = report.summary().unresolvedInstances();
-        List<String> names = new ArrayList<>();
+        Set<String> uniqueNames = new LinkedHashSet<>();
         for (ReportIssue issue : report.unresolved()) {
-            names.add(issue.quantityLabel());
+            uniqueNames.add(issue.quantityLabel());
         }
+        List<String> names = new ArrayList<>(uniqueNames);
         String prefix = "Unresolved: " + count + " (";
         String suffix = ")";
         String full = prefix + String.join(", ", names) + suffix;

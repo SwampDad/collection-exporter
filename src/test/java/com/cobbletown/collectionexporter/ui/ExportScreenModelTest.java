@@ -96,6 +96,34 @@ class ExportScreenModelTest {
     }
 
     @Test
+    void unresolvedNonSelectedPokemonIsAvailableToTheScreen() {
+        ExportScreenModel model = model(TestFixtures.unselectedUnresolvedInventory(),
+                text -> ClipboardResult.success(text.length()));
+        assertEquals(1, model.unresolved().size());
+        assertEquals("Eevee", model.unresolved().get(0).displayName());
+    }
+
+    @Test
+    void locationsAreOptInAndDoNotChangeTheSelectedReport() {
+        ExportScreenModel model = model(TestFixtures.locationInventory(),
+                text -> ClipboardResult.success(text.length()));
+        assertFalse(model.showLocations());
+        assertFalse(model.request().includeLocations());
+        int selected = model.report().summary().includedInstances();
+
+        model.setShowLocations(true);
+        model.rebuild(new ExportController(
+                TestFixtures::locationInventory,
+                new ReportEngine(ClassificationCatalogLoader.loadDefault()),
+                new ReportTextFormatter(),
+                text -> ClipboardResult.success(text.length())));
+
+        assertTrue(model.request().includeLocations());
+        assertEquals(selected, model.report().summary().includedInstances());
+        assertTrue(model.reportText().contains("Box 3, Pos. 13"));
+    }
+
+    @Test
     void partialInventoryIsNeverReportedAsComplete() {
         ExportScreenModel model = model(TestFixtures.partialInventory(),
                 text -> ClipboardResult.success(text.length()));

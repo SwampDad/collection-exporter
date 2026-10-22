@@ -3,7 +3,6 @@ package com.cobbletown.collectionexporter.ui;
 import com.cobbletown.collectionexporter.clipboard.ClipboardResult;
 import com.cobbletown.collectionexporter.data.InventoryCompleteness;
 import com.cobbletown.collectionexporter.report.ReportCategory;
-import com.cobbletown.collectionexporter.report.ReportResult;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -11,21 +10,18 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.text.Text;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Native export screen. It reads the client-synchronized PC once when opened, rebuilds from
- * that cached observation for local filter changes, and copies the generated report through
- * the existing clipboard adapter. It never reads the PC during rendering.
+ * Native collection screen. The scrollable report is the primary surface; filters are compact
+ * and the clipboard remains available from the footer.
  */
 public final class CollectionExporterScreen extends Screen {
-    private static final int MUTED = 0xFFB8C6D8;
-    private static final int LABEL = 0xFFDDE6F2;
+    private static final int PANEL = 0xC0080A0C;
+    private static final int BORDER = 0x504A5562;
     private static final int TITLE = 0xFFFFFFFF;
-    private static final int SUCCESS = 0xFF8FE388;
-    private static final int WARNING = 0xFFFFD54A;
-    private static final int ERROR = 0xFFFF7A7A;
-    private static final int DIVIDER = 0x30FFFFFF;
+    private static final int VERSION_LABEL = 0xFFA0A5AD;
 
     private final Screen parent;
     private final ExportController controller;
@@ -33,18 +29,10 @@ public final class CollectionExporterScreen extends Screen {
 
     private boolean loaded;
     private String loadFailure;
-    private ExportStatusText.Message status;
     private ButtonWidget copyButton;
     private ExportScreenLayout layout;
-
-    private int unresolvedX;
-    private int unresolvedY;
-    private int unresolvedWidth;
-    private int unresolvedHeight;
-    private int statusX;
-    private int statusY;
-    private int statusWidth;
-    private int statusHeight;
+    private ReportViewerWidget viewer;
+    private int copyFeedbackTicks;
 
     public CollectionExporterScreen(Screen parent, ExportController controller) {
         super(Text.literal("Collection Exporter"));
@@ -54,12 +42,33 @@ public final class CollectionExporterScreen extends Screen {
 
     @Override
     protected void init() {
-        layout = ExportScreenLayout.compute(width, height);
+        ReportViewerWidget.State viewerState = viewer == null ? null : viewer.state();
+        layout = ExportScreenLayout.compute(width, height, filterRows());
         ensureLoaded();
+
         addDrawable((context, mouseX, mouseY, delta) -> drawPanel(context));
-        addFilterWidgets();
-        addActionWidgets();
+        addFilters();
+        addViewer(viewerState);
+        addActions();
         updateCopyState();
+    }
+
+    private int filterRows() {
+        ExportScreenLayout base = ExportScreenLayout.compute(width, height, 1);
+        List<Integer> widths = filterSpecs().stream()
+                .map(spec -> filterWidth(spec.label())).toList();
+        return ExportFilterLayout.layout(base.contentX(), base.filterTop(),
+                base.contentWidth(), widths, 6, base.filterRowHeight()).rows();
+    }
+
+    private List<FilterSpec> filterSpecs() {
+        List<FilterSpec> specs = new ArrayList<>();
+        specs.add(new FilterSpec("All", ReportCategory.ALL));
+        specs.add(new FilterSpec("Custom Skins", ReportCategory.SKINS));
+        specs.add(new FilterSpec("Legend & Mythic", ReportCategory.LEGEND_MYTH));
+        specs.add(new FilterSpec("Shiny", ReportCategory.SHINY));
+        specs.add(new FilterSpec("Show PC Locations", null));
+        return specs;
     }
 
     private void ensureLoaded() {
@@ -81,80 +90,133 @@ public final class CollectionExporterScreen extends Screen {
         } catch (RuntimeException failure) {
             loadFailure = shortFailure(failure);
         }
-        status = ExportStatusText.afterLoad(
-                model.report(),
-                loadFailure,
-                !model.selectedCategories().isEmpty());
     }
 
-    private void addFilterWidgets() {
-        addFilter(ReportCategory.ALL, "All Pokémon");
-        addFilter(ReportCategory.SKINS, "Custom Skins");
-        addFilter(ReportCategory.LEGEND_MYTH, "Legendary & Mythical");
-        addFilter(ReportCategory.SHINY, "Shiny");
-    }
-
-    private void addFilter(ReportCategory category, String label) {
-        int x = layout.contentX()
-                + layout.filterColumn(category) * (layout.columnWidth() + layout.columnGap());
-        int y = layout.filterTop() + layout.filterRow(category) * layout.filterRowHeight();
-        String countedLabel = label + " (" + model.categoryCount(category) + ")";
-        CheckboxWidget checkbox = CheckboxWidget.builder(Text.literal(countedLabel), textRenderer)
-                .pos(x, y)
-                .checked(model.isSelected(category))
-                .maxWidth(layout.columnWidth())
-                .callback((widget, checked) -> onFilterChanged(category, checked))
-                .build();
-        addDrawableChild(checkbox);
-    }
-
-    private void addActionWidgets() {
-        int gap = 6;
-        int contentWidth = layout.contentWidth();
-        int backWidth = Math.min(84, Math.max(58, contentWidth / 4));
-        int refreshWidth = Math.min(90, Math.max(62, contentWidth / 4));
-        int copyWidth = contentWidth - backWidth - refreshWidth - gap * 2;
-        if (copyWidth < 76) {
-            copyWidth = 76;
-            int remaining = Math.max(40, contentWidth - copyWidth - gap * 2);
-            backWidth = remaining / 2;
-            refreshWidth = remaining - backWidth;
+    private void addFilters() {
+        List<FilterSpec> specs = filterSpecs();
+        ExportScreenLayout base = ExportScreenLayout.compute(width, height, layout.filterRows());
+        ExportFilterLayout.Result result = ExportFilterLayout.layout(
+                base.contentX(), base.filterTop(), base.contentWidth(),
+                specs.stream().map(spec -> filterWidth(spec.label())).toList(),
+                6, base.filterRowHeight());
+        for (int index = 0; index < specs.size(); index++) {
+            FilterSpec spec = specs.get(index);
+            ExportFilterLayout.Placement placement = result.get(index);
+            CheckboxWidget.Builder builder = CheckboxWidget.builder(
+                            Text.literal(spec.label()), textRenderer)
+                    .pos(placement.x(), placement.y())
+                    .maxWidth(base.contentWidth())
+                    .checked(spec.category() == null
+                            ? model.showLocations()
+                            : model.isSelected(spec.category()));
+            if (spec.category() == null) {
+                builder.callback((widget, checked) -> onLocationsChanged(checked));
+            } else {
+                builder.callback((widget, checked) -> onFilterChanged(spec.category(), checked));
+            }
+            addDrawableChild(builder.build());
         }
-        String copyLabel = copyWidth < 120 ? "Copy" : "Copy to Clipboard";
+    }
 
+    private int filterWidth(String label) {
+        return CheckboxWidget.getCheckboxSize(textRenderer) + 4 + textRenderer.getWidth(label);
+    }
+
+    private void addViewer(ReportViewerWidget.State state) {
+        viewer = new ReportViewerWidget(
+                layout.contentX(), layout.reportTop(),
+                layout.contentWidth(), layout.reportBottom() - layout.reportTop(),
+                textRenderer,
+                currentView());
+        viewer.setEmptyMessage(emptyMessage());
+        if (state != null) {
+            viewer.restoreState(state);
+        }
+        addDrawableChild(viewer);
+    }
+
+    private ReportView currentView() {
+        if (loadFailure != null) {
+            return new ReportView(List.of());
+        }
+        return ReportViewBuilder.build(model.report(), model.showLocations());
+    }
+
+    private String emptyMessage() {
+        if (loadFailure != null) {
+            return "PC data could not be read: " + loadFailure;
+        }
+        return "No Pokémon matched the selected categories.";
+    }
+
+    private void addActions() {
+        String copyLabel = copyLabel();
         addDrawableChild(ButtonWidget.builder(Text.literal("Refresh"), button -> refresh())
-                .dimensions(layout.contentX(), layout.buttonsY(), refreshWidth, 20).build());
+                .dimensions(layout.refreshX(), layout.buttonsY(), layout.refreshWidth(), 20).build());
         copyButton = addDrawableChild(ButtonWidget.builder(Text.literal(copyLabel), button -> copy())
-                .dimensions(layout.contentX() + refreshWidth + gap, layout.buttonsY(), copyWidth, 20).build());
+                .dimensions(layout.copyX(), layout.buttonsY(), layout.copyWidth(), 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("Back"), button -> close())
-                .dimensions(layout.contentX() + refreshWidth + gap + copyWidth + gap,
-                        layout.buttonsY(), backWidth, 20)
-                .build());
+                .dimensions(layout.backX(), layout.buttonsY(), layout.backWidth(), 20).build());
+    }
+
+    private String copyLabel() {
+        if (copyFeedbackTicks > 0) {
+            return copyButton == null ? "Copied!" : copyButton.getMessage().getString();
+        }
+        return layout.copyWidth() < 100 ? "Copy" : "Copy to Clipboard";
     }
 
     private void onFilterChanged(ReportCategory category, boolean checked) {
         model.selectCategory(category, checked);
         readPc(false);
         rebuildWidgets();
+        updateCopyState();
+    }
+
+    private void onLocationsChanged(boolean checked) {
+        model.setShowLocations(checked);
+        readPc(false);
+        updateViewer();
+        updateCopyState();
     }
 
     private void refresh() {
         readPc(true);
-        rebuildWidgets();
+        updateViewer();
+        if (viewer != null) {
+            viewer.scrollToTop();
+        }
+    }
+
+    private void updateViewer() {
+        if (viewer == null) {
+            return;
+        }
+        viewer.setView(currentView());
+        viewer.setEmptyMessage(emptyMessage());
     }
 
     private void copy() {
         try {
             ClipboardResult result = model.copy(controller);
-            loadFailure = null;
-            status = ExportStatusText.afterCopy(result, model.report());
+            if (result != null && result.success()) {
+                setCopyFeedback("Copied!");
+            } else {
+                setCopyFeedback("Copy failed");
+            }
         } catch (RuntimeException failure) {
             loadFailure = shortFailure(failure);
-            status = new ExportStatusText.Message(
-                    "Could not read the PC before copying: " + loadFailure,
-                    ExportStatusText.Tone.ERROR);
+            setCopyFeedback("Copy failed");
+            updateViewer();
         }
         updateCopyState();
+    }
+
+    private void setCopyFeedback(String label) {
+        copyFeedbackTicks = 40;
+        if (copyButton != null) {
+            copyButton.setMessage(Text.literal(label));
+        }
     }
 
     private void updateCopyState() {
@@ -167,11 +229,18 @@ public final class CollectionExporterScreen extends Screen {
                 && !model.selectedCategories().isEmpty()
                 && completeness != InventoryCompleteness.UNAVAILABLE
                 && completeness != InventoryCompleteness.AMBIGUOUS_MULTIPLE_STORES;
+        if (copyFeedbackTicks == 0) {
+            copyButton.setMessage(Text.literal(copyLabel()));
+        }
     }
 
     private void rebuildWidgets() {
+        ReportViewerWidget.State state = viewer == null ? null : viewer.state();
         clearChildren();
         init();
+        if (viewer != null && state != null) {
+            viewer.restoreState(state);
+        }
     }
 
     private static String shortFailure(RuntimeException failure) {
@@ -182,106 +251,33 @@ public final class CollectionExporterScreen extends Screen {
     }
 
     @Override
+    public void tick() {
+        super.tick();
+        if (copyFeedbackTicks > 0) {
+            copyFeedbackTicks--;
+            if (copyFeedbackTicks == 0) {
+                updateCopyState();
+            }
+        }
+    }
+
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        drawText(context, mouseX, mouseY);
+        context.drawCenteredTextWithShadow(textRenderer, getTitle(), width / 2, layout.titleY(), TITLE);
+        String version = CollectionExporterVersionLabel.text();
+        int versionX = layout.panelX() + layout.panelWidth() - 10 - textRenderer.getWidth(version);
+        int versionY = layout.panelY() + layout.panelHeight() - 13;
+        context.drawTextWithShadow(textRenderer, version, versionX, versionY, VERSION_LABEL);
     }
 
     private void drawPanel(DrawContext context) {
         context.fill(layout.panelX(), layout.panelY(),
-                layout.panelX() + layout.panelWidth(), layout.panelY() + layout.panelHeight(), 0x90000000);
+                layout.panelX() + layout.panelWidth(), layout.panelY() + layout.panelHeight(), PANEL);
         context.fill(layout.panelX(), layout.panelY(),
-                layout.panelX() + layout.panelWidth(), layout.panelY() + 1, 0x40FFFFFF);
+                layout.panelX() + layout.panelWidth(), layout.panelY() + 1, BORDER);
         context.fill(layout.panelX(), layout.panelY() + layout.panelHeight() - 1,
-                layout.panelX() + layout.panelWidth(), layout.panelY() + layout.panelHeight(), 0x40FFFFFF);
-    }
-
-    private void drawText(DrawContext context, int mouseX, int mouseY) {
-        context.drawCenteredTextWithShadow(textRenderer, getTitle(), width / 2, layout.titleY(), TITLE);
-
-        ExportStatusText.SnapshotStatus snapshot =
-                ExportStatusText.snapshotStatus(model.report(), loadFailure);
-        context.drawTextWithShadow(textRenderer, snapshot.headline(),
-                layout.contentX(), layout.snapshotY(), toneColor(snapshot.tone()));
-        if (snapshot.detail() != null) {
-            context.drawTextWithShadow(textRenderer,
-                    ellipsize(snapshot.detail(), layout.contentWidth()),
-                    layout.contentX(), layout.snapshotY() + 10, MUTED);
-        }
-
-        drawSectionHeading(context, "CATEGORIES", layout.categoryHeadingY());
-        drawSectionHeading(context, "EXPORT SUMMARY", layout.summaryHeadingY());
-
-        ReportResult report = model.report();
-        context.drawTextWithShadow(textRenderer,
-                ExportStatusText.selectedLine(report),
-                layout.contentX(), layout.selectedY(), LABEL);
-
-        String unresolved = ExportStatusText.unresolvedLine(
-                report, layout.contentWidth(), textRenderer::getWidth);
-        unresolvedX = layout.contentX();
-        unresolvedY = layout.unresolvedY();
-        unresolvedWidth = layout.contentWidth();
-        unresolvedHeight = 10;
-        if (!unresolved.isEmpty()) {
-            context.drawTextWithShadow(textRenderer, ellipsize(unresolved, layout.contentWidth()),
-                    layout.contentX(), layout.unresolvedY(), WARNING);
-        }
-
-        String customSpecies = ExportStatusText.customSpeciesLine(report);
-        if (!customSpecies.isEmpty()) {
-            context.drawTextWithShadow(textRenderer, ellipsize(customSpecies, layout.contentWidth()),
-                    layout.contentX(), layout.customSpeciesY(), MUTED);
-        }
-
-        statusX = layout.contentX();
-        statusY = layout.statusY();
-        statusWidth = layout.contentWidth();
-        statusHeight = 10;
-        if (status != null) {
-            context.drawTextWithShadow(textRenderer, ellipsize(status.text(), layout.contentWidth()),
-                    layout.contentX(), layout.statusY(), toneColor(status.tone()));
-        }
-
-        if (!unresolved.isEmpty() && inside(mouseX, mouseY, unresolvedX, unresolvedY,
-                unresolvedWidth, unresolvedHeight)) {
-            List<Text> tooltip = ExportStatusText.unresolvedTooltip(report).stream()
-                    .<Text>map(Text::literal)
-                    .toList();
-            if (!tooltip.isEmpty()) {
-                context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
-            }
-        } else if (status != null && inside(mouseX, mouseY, statusX, statusY, statusWidth, statusHeight)) {
-            context.drawTooltip(textRenderer, List.of(Text.literal(status.text())), mouseX, mouseY);
-        }
-    }
-
-    private void drawSectionHeading(DrawContext context, String heading, int y) {
-        context.drawTextWithShadow(textRenderer, heading, layout.contentX(), y, LABEL);
-        context.fill(layout.contentX(), y + 10,
-                layout.contentX() + layout.contentWidth(), y + 11, DIVIDER);
-    }
-
-    private String ellipsize(String text, int maxWidth) {
-        if (text == null || text.isEmpty() || textRenderer.getWidth(text) <= maxWidth) {
-            return text;
-        }
-        String ellipsis = "...";
-        int available = Math.max(0, maxWidth - textRenderer.getWidth(ellipsis));
-        return textRenderer.trimToWidth(text, available) + ellipsis;
-    }
-
-    private static boolean inside(int mouseX, int mouseY, int x, int y, int width, int height) {
-        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
-    }
-
-    private int toneColor(ExportStatusText.Tone tone) {
-        return switch (tone) {
-            case MUTED -> MUTED;
-            case SUCCESS -> SUCCESS;
-            case WARNING -> WARNING;
-            case ERROR -> ERROR;
-        };
+                layout.panelX() + layout.panelWidth(), layout.panelY() + layout.panelHeight(), BORDER);
     }
 
     @Override
@@ -292,5 +288,8 @@ public final class CollectionExporterScreen extends Screen {
     @Override
     public boolean shouldPause() {
         return false;
+    }
+
+    private record FilterSpec(String label, ReportCategory category) {
     }
 }

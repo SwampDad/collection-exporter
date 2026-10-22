@@ -125,7 +125,7 @@ public final class TestFixtures {
                 1,
                 1,
                 List.of(pokemon("cobblemon:gyarados", "Gyarados", 130, "male",
-                        List.of("shiny", "male", "magikarp-jump-standard", "gyarados-eye-color-red"),
+                        List.of("shiny", "male", "mystery-token", "second-mystery"),
                         true, 50)),
                 List.of());
     }
@@ -148,6 +148,85 @@ public final class TestFixtures {
                                 List.of("genderless"), false, 50),
                         pokemon("cobblemon:mew", "Mew", 151, "genderless",
                                 List.of("genderless"), false, 50)),
+                List.of());
+    }
+
+    public static PcInventorySnapshot adventureZoroarkInventory() {
+        sequence = 700;
+        return new PcInventorySnapshot(
+                "2026-10-21T18:00:00Z",
+                "cobblemon-client-pc",
+                "00000000-0000-0000-0000-000000000000",
+                InventoryCompleteness.COMPLETE_SYNCHRONIZED_STORE,
+                1,
+                1,
+                List.of(pokemon("cobblemon:zoroark", "Zoroark", 571, "male",
+                        List.of("male", "adventure2026", "ranked"), false, 50)),
+                List.of());
+    }
+
+    public static PcInventorySnapshot unselectedUnresolvedInventory() {
+        sequence = 800;
+        return new PcInventorySnapshot(
+                "2026-10-21T18:30:00Z",
+                "cobblemon-client-pc",
+                "00000000-0000-0000-0000-000000000000",
+                InventoryCompleteness.COMPLETE_SYNCHRONIZED_STORE,
+                1,
+                1,
+                List.of(pokemon("cobblemon:eevee", "Eevee", 133, "male",
+                        List.of("male", "future2027skin"), false, 50)),
+                List.of());
+    }
+
+    public static PcInventorySnapshot unresolvedMixedTokenInventory() {
+        sequence = 900;
+        return new PcInventorySnapshot(
+                "2026-10-21T18:45:00Z",
+                "cobblemon-client-pc",
+                "00000000-0000-0000-0000-000000000000",
+                InventoryCompleteness.COMPLETE_SYNCHRONIZED_STORE,
+                1,
+                1,
+                List.of(pokemon("cobblemon:eevee", "Eevee", 133, "male",
+                        List.of("male", "future2027skin", "mystery-token"), false, 50)),
+                List.of());
+    }
+
+    public static PcInventorySnapshot locationInventory() {
+        sequence = 900;
+        return new PcInventorySnapshot(
+                "2026-10-22T00:00:00Z",
+                "cobblemon-client-pc",
+                "00000000-0000-0000-0000-000000000000",
+                InventoryCompleteness.COMPLETE_SYNCHRONIZED_STORE,
+                150,
+                7,
+                List.of(
+                        pokemonAt(2, 12, "cobblemon:zoroark", "Zoroark", 571,
+                                List.of("male", "adventure2026"), false),
+                        pokemonAt(2, 22, "cobblemon:tinkaton", "Tinkaton", 959,
+                                List.of("female", "october2026spooky"), false),
+                        pokemonAt(6, 21, "cobblemon:tinkaton", "Tinkaton", 959,
+                                List.of("female", "october2026spooky"), false)),
+                List.of());
+    }
+
+    public static PcInventorySnapshot missingLocationInventory() {
+        sequence = 950;
+        PokemonRecord record = new PokemonRecord(
+                UUID.fromString("00000000-0000-0000-0000-000000000950"),
+                -1, -1, "cobblemon:tinkaton", "Tinkaton", 959,
+                "normal", "Normal", List.of("female", "october2026spooky"),
+                false, 50, "female", null);
+        return new PcInventorySnapshot(
+                "2026-10-22T00:00:01Z",
+                "cobblemon-client-pc",
+                "00000000-0000-0000-0000-000000000000",
+                InventoryCompleteness.COMPLETE_SYNCHRONIZED_STORE,
+                1,
+                1,
+                List.of(record),
                 List.of());
     }
 
@@ -182,10 +261,23 @@ public final class TestFixtures {
     private static PokemonRecord pokemon(String speciesId, String name, int dex, String gender,
                                          List<String> aspects, boolean shiny, int level) {
         sequence++;
+        return pokemonAt(sequence / 30, sequence % 30, speciesId, name, dex,
+                aspects, shiny, level, gender);
+    }
+
+    private static PokemonRecord pokemonAt(int box, int slot, String speciesId, String name, int dex,
+                                           List<String> aspects, boolean shiny) {
+        sequence++;
+        return pokemonAt(box, slot, speciesId, name, dex, aspects, shiny, 50, "female");
+    }
+
+    private static PokemonRecord pokemonAt(int box, int slot, String speciesId, String name, int dex,
+                                           List<String> aspects, boolean shiny, int level,
+                                           String gender) {
         return new PokemonRecord(
                 UUID.fromString(String.format("00000000-0000-0000-0000-%012d", sequence)),
-                sequence / 30,
-                sequence % 30,
+                box,
+                slot,
                 speciesId,
                 name,
                 dex,

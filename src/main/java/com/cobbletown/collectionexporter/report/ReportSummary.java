@@ -1,6 +1,9 @@
 package com.cobbletown.collectionexporter.report;
 
-/** Counts for selected Pokémon. Duplicate instances are counted separately. */
+/**
+ * Counts for selected Pokémon, plus classification issues across the full PC.
+ * Duplicate instances are counted separately.
+ */
 public record ReportSummary(
         int includedInstances,
         int skinInstances,

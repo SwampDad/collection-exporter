@@ -33,16 +33,17 @@ public final class ReportTextFormatter {
     public String format(ReportResult result, ReportRequest request) {
         StringBuilder out = new StringBuilder();
         appendHeader(out, result);
+        boolean locations = request.includeLocations();
         if (result.isEmpty()) {
             out.append("\nNo Pokémon matched the selected categories.\n");
         } else {
-            appendSkins(out, result.skinGroups());
-            appendLegendaryAndMythical(out, result);
-            appendEntries(out, "SHINY", result.shiny());
-            appendEntries(out, "OTHER", result.other());
-            appendIssues(out, "UNRESOLVED", result.unresolved());
-            appendIssues(out, "CONFLICTS", result.conflicts());
+            appendSkins(out, result.skinGroups(), locations);
+            appendLegendaryAndMythical(out, result, locations);
+            appendEntries(out, "SHINY", result.shiny(), locations);
+            appendEntries(out, "OTHER", result.other(), locations);
         }
+        appendIssues(out, "UNRESOLVED", result.unresolved());
+        appendIssues(out, "CONFLICTS", result.conflicts());
         if (request.includeCounts()) {
             appendSummary(out, result.summary());
         }
@@ -64,50 +65,100 @@ public final class ReportTextFormatter {
         }
     }
 
-    private void appendSkins(StringBuilder out, List<SkinGroup> groups) {
+    private void appendSkins(StringBuilder out, List<SkinGroup> groups, boolean locations) {
         if (groups.isEmpty()) {
             return;
         }
         appendSectionHeading(out, "CUSTOM SKINS");
         for (SkinGroup group : groups) {
             out.append("  ").append(group.family().displayName()).append('\n');
-            out.append("    Shiny: ").append(names(group.shiny(), true)).append('\n');
-            out.append("    Non-Shiny: ").append(names(group.nonShiny(), true)).append('\n');
+            appendSkinEntries(out, group.shiny(), locations, true);
+            appendSkinEntries(out, group.nonShiny(), locations, false);
         }
     }
 
-    private void appendLegendaryAndMythical(StringBuilder out, ReportResult result) {
+    private void appendSkinEntries(StringBuilder out, List<ReportEntry> entries,
+                                   boolean locations, boolean shiny) {
+        for (ReportEntry entry : entries) {
+            String label = entry.displayName();
+            if (entry.categories().contains(PokemonCategory.LEGENDARY)) {
+                label += " (Legendary)";
+            } else if (entry.categories().contains(PokemonCategory.MYTHICAL)) {
+                label += " (Mythical)";
+            }
+            if (shiny) {
+                label = "Shiny " + label;
+            }
+            if (locations) {
+                appendLocatedEntry(out, label, entry, 4, 6);
+            } else {
+                String quantity = entry.count() > 1 ? label + " ×" + entry.count() : label;
+                out.append("    ").append(quantity).append('\n');
+            }
+        }
+    }
+
+    private void appendLegendaryAndMythical(StringBuilder out, ReportResult result,
+                                            boolean locations) {
         List<ReportEntry> mythical = result.mythicalEntries();
         List<ReportEntry> legendary = result.legendaryEntries();
         if (mythical.isEmpty() && legendary.isEmpty()) {
             return;
         }
         appendSectionHeading(out, "LEGENDARY & MYTHICAL");
-        appendSubgroup(out, "Mythical", mythical);
-        appendSubgroup(out, "Legendary", legendary);
+        appendSubgroup(out, "Mythical", mythical, locations);
+        appendSubgroup(out, "Legendary", legendary, locations);
     }
 
-    private void appendSubgroup(StringBuilder out, String heading, List<ReportEntry> entries) {
+    private void appendSubgroup(StringBuilder out, String heading, List<ReportEntry> entries,
+                                boolean locations) {
         if (entries.isEmpty()) {
             return;
         }
         out.append(heading).append('\n');
+        if (locations) {
+            for (ReportEntry entry : entries) {
+                String label = (entry.shiny() ? "Shiny " : "") + entry.displayName();
+                appendLocatedEntry(out, label, entry, 2, 4);
+            }
+            return;
+        }
         for (ReportEntry entry : entries) {
             out.append("  ").append(legendaryLabel(entry)).append('\n');
         }
     }
 
     private String legendaryLabel(ReportEntry entry) {
-        return entry.shiny() ? entry.quantityLabel() + " (Shiny)" : entry.quantityLabel();
+        return entry.shiny() ? "Shiny " + entry.quantityLabel() : entry.quantityLabel();
     }
 
-    private void appendEntries(StringBuilder out, String heading, List<ReportEntry> entries) {
+    private void appendEntries(StringBuilder out, String heading, List<ReportEntry> entries,
+                               boolean locations) {
         if (entries.isEmpty()) {
             return;
         }
         appendSectionHeading(out, heading);
+        if (locations) {
+            for (ReportEntry entry : entries) {
+                appendLocatedEntry(out, entry.displayName(), entry, 2, 4);
+            }
+            return;
+        }
         for (ReportEntry entry : entries) {
             out.append("  ").append(entry.quantityLabel()).append('\n');
+        }
+    }
+
+    private void appendLocatedEntry(StringBuilder out, String label, ReportEntry entry,
+                                    int indent, int locationIndent) {
+        if (entry.count() == 1) {
+            out.append(" ".repeat(indent)).append(label).append(" — ")
+                    .append(PcLocation.format(entry.instances().get(0))).append('\n');
+            return;
+        }
+        out.append(" ".repeat(indent)).append(label).append('\n');
+        for (var pokemon : entry.instances()) {
+            out.append(" ".repeat(locationIndent)).append(PcLocation.format(pokemon)).append('\n');
         }
     }
 
@@ -128,29 +179,6 @@ public final class ReportTextFormatter {
 
     private void appendSectionHeading(StringBuilder out, String heading) {
         out.append('\n').append(heading).append('\n').append(LIGHT_DIVIDER).append('\n');
-    }
-
-    private String names(List<ReportEntry> entries, boolean withinSkins) {
-        if (entries.isEmpty()) {
-            return "None";
-        }
-        List<String> labels = new ArrayList<>();
-        for (ReportEntry entry : entries) {
-            labels.add(label(entry, withinSkins));
-        }
-        return String.join(", ", labels);
-    }
-
-    private String label(ReportEntry entry, boolean withinSkins) {
-        StringBuilder label = new StringBuilder(entry.quantityLabel());
-        if (withinSkins) {
-            if (entry.categories().contains(PokemonCategory.LEGENDARY)) {
-                label.append(" (Legendary)");
-            } else if (entry.categories().contains(PokemonCategory.MYTHICAL)) {
-                label.append(" (Mythical)");
-            }
-        }
-        return label.toString();
     }
 
     private void appendSummary(StringBuilder out, ReportSummary summary) {

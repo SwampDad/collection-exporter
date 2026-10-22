@@ -1,16 +1,12 @@
-# Collection Exporter 0.3.0-dev.1
+# Collection Exporter release files
 
-This is a **tester build** of Collection Exporter for Minecraft 1.21.1.
+`collection-exporter-0.3.0.jar` is the versioned Fabric runtime JAR for the first stable
+release. `collection-exporter.jar` is the byte-identical stable-download alias used by the
+permanent GitHub download URL.
 
-Install `collection-exporter-0.3.0-dev.1.jar` in a Fabric 1.21.1 client's `mods` folder.
-It requires Fabric Loader `>=0.18.0`, Fabric API `>=0.116.7+1.21.1`, Cobblemon `1.8.2`,
-and Java `21` or newer. PC Plus and PC Exporter are not required.
+Both require Minecraft 1.21.1, Fabric Loader 0.18.0 or newer, Fabric API
+0.116.7+1.21.1 or newer, Cobblemon 1.8.2, and Java 21 or newer. Install exactly one
+Collection Exporter JAR in the client `mods` folder. This mod is client-only; PC Plus and
+PC Exporter are not required.
 
-This is a remapped runtime JAR. Do not use a development JAR or source ZIP as the
-installable file.
-
-The build was produced from the public source in this directory with:
-
-```sh
-./gradlew clean test build
-```
+See `SHA256SUMS-v0.3.0.txt` for checksums and `RELEASE-NOTES-v0.3.0.md` for release notes.

@@ -108,6 +108,13 @@ class ExportStatusTextTest {
     }
 
     @Test
+    void unresolvedLineDoesNotRepeatSamePokemonForTwoReasons() {
+        ReportResult report = report(TestFixtures.unresolvedMixedTokenInventory(), ReportCategory.ALL);
+        assertEquals("Unresolved: 1 (Eevee)",
+                ExportStatusText.unresolvedLine(report, 400, String::length));
+    }
+
+    @Test
     void customSpeciesLineIsSeparateFromUnresolved() {
         ReportResult report = report(TestFixtures.customSpeciesInventory(), ReportCategory.ALL);
         assertEquals("Custom/unknown species: 1", ExportStatusText.customSpeciesLine(report));

@@ -1,5 +1,6 @@
 package com.cobbletown.collectionexporter.report;
 
+import com.cobbletown.collectionexporter.classify.AspectHeuristics;
 import com.cobbletown.collectionexporter.classify.ClassificationCatalog;
 import com.cobbletown.collectionexporter.classify.ClassificationService;
 import com.cobbletown.collectionexporter.classify.ClassifiedPokemon;
@@ -24,7 +25,9 @@ import java.util.UUID;
  *
  * <p>Filters decide inclusion with logical OR. Presentation priority is fixed:
  * skins, then Legend &amp; Mythic, then shiny, then other. A Pokémon appears exactly once.
- * Instances are never deduplicated; species/form display rows retain their counted instances.</p>
+ * Instances are never deduplicated; species/form display rows retain their counted instances.
+ * Unresolved skin tokens and conflicts are computed across the full PC, so filters cannot
+ * hide a classification gap.</p>
  */
 public final class ReportEngine {
     private static final Comparator<ReportEntry> ENTRY_ORDER =
@@ -95,8 +98,8 @@ public final class ReportEngine {
         List<ReportEntry> shinyEntries = toEntries(shiny, null);
         List<ReportEntry> otherEntries = toEntries(other, null);
 
-        ReportSummary summary = summary(included, bySkin, other.size());
-        List<String> diagnostics = diagnostics(inventory, included);
+        ReportSummary summary = summary(included, all, bySkin, other.size());
+        List<String> diagnostics = diagnostics(inventory, all);
         ReportResult result = new ReportResult(
                 inventory.capturedAt(),
                 inventory.completeness(),
@@ -107,8 +110,8 @@ public final class ReportEngine {
                 summary,
                 diagnostics,
                 counts(all),
-                issues(included, SkinResolutionStatus.UNRESOLVED),
-                issues(included, SkinResolutionStatus.CONFLICT));
+                issues(all, SkinResolutionStatus.UNRESOLVED),
+                issues(all, SkinResolutionStatus.CONFLICT));
         return new ReportModel(included, result);
     }
 
@@ -180,6 +183,7 @@ public final class ReportEngine {
     }
 
     private ReportSummary summary(List<ClassifiedPokemon> included,
+                                  List<ClassifiedPokemon> all,
                                   Map<SkinFamily, List<ClassifiedPokemon>> bySkin,
                                   int otherInstances) {
         int skin = 0;
@@ -202,8 +206,6 @@ public final class ReportEngine {
         int paradox = 0;
         int ultraBeast = 0;
         int shiny = 0;
-        int conflicts = 0;
-        int unresolved = 0;
         int custom = 0;
         for (ClassifiedPokemon entry : included) {
             if (entry.hasCategory(PokemonCategory.LEGENDARY)) legendary++;
@@ -211,9 +213,13 @@ public final class ReportEngine {
             if (entry.hasCategory(PokemonCategory.PARADOX)) paradox++;
             if (entry.hasCategory(PokemonCategory.ULTRA_BEAST)) ultraBeast++;
             if (entry.pokemon().shiny()) shiny++;
-            if (entry.skin().status() == SkinResolutionStatus.CONFLICT) conflicts++;
-            if (entry.skin().status() == SkinResolutionStatus.UNRESOLVED) unresolved++;
             if (entry.customSpecies()) custom++;
+        }
+        int conflicts = 0;
+        int unresolved = 0;
+        for (ClassifiedPokemon entry : all) {
+            if (entry.skin().status() == SkinResolutionStatus.CONFLICT) conflicts++;
+            if (!entry.unknownAspects().isEmpty()) unresolved++;
         }
         return new ReportSummary(
                 included.size(),
@@ -250,24 +256,20 @@ public final class ReportEngine {
         return new ReportCounts(all.size(), customSkins, legendaryMythical, shiny);
     }
 
-    private List<ReportIssue> issues(List<ClassifiedPokemon> included, SkinResolutionStatus status) {
+    private List<ReportIssue> issues(List<ClassifiedPokemon> all, SkinResolutionStatus status) {
         Map<IssueKey, List<ClassifiedPokemon>> groups = new LinkedHashMap<>();
-        for (ClassifiedPokemon entry : included) {
-            if (entry.skin().status() != status) {
-                continue;
+        for (ClassifiedPokemon entry : all) {
+            if (status == SkinResolutionStatus.UNRESOLVED) {
+                List<String> unknown = entry.unknownAspects();
+                addIssue(groups, entry, unknown.stream()
+                        .filter(AspectHeuristics::looksLikeYearToken).toList(),
+                        "Potential new skin (year token)");
+                addIssue(groups, entry, unknown.stream()
+                        .filter(aspect -> !AspectHeuristics.looksLikeYearToken(aspect)).toList(),
+                        "Unrecognized aspect");
+            } else if (entry.skin().status() == SkinResolutionStatus.CONFLICT) {
+                addIssue(groups, entry, entry.skin().matchedAspects(), reason(status));
             }
-            List<String> aspects = status == SkinResolutionStatus.UNRESOLVED
-                    ? entry.unknownAspects()
-                    : entry.skin().matchedAspects();
-            if (aspects.isEmpty()) {
-                continue;
-            }
-            IssueKey key = new IssueKey(
-                    entry.pokemon().displaySpecies(),
-                    reason(status),
-                    List.copyOf(new LinkedHashSet<>(aspects)),
-                    entry.customSpecies());
-            groups.computeIfAbsent(key, ignored -> new ArrayList<>()).add(entry);
         }
 
         List<ReportIssue> issues = new ArrayList<>();
@@ -283,6 +285,21 @@ public final class ReportEngine {
         return List.copyOf(issues);
     }
 
+    private static void addIssue(Map<IssueKey, List<ClassifiedPokemon>> groups,
+                                 ClassifiedPokemon entry,
+                                 List<String> aspects,
+                                 String reason) {
+        if (aspects.isEmpty()) {
+            return;
+        }
+        IssueKey key = new IssueKey(
+                entry.pokemon().displaySpecies(),
+                reason,
+                List.copyOf(new LinkedHashSet<>(aspects)),
+                entry.customSpecies());
+        groups.computeIfAbsent(key, ignored -> new ArrayList<>()).add(entry);
+    }
+
     private static String reason(SkinResolutionStatus status) {
         return status == SkinResolutionStatus.CONFLICT
                 ? "Conflicting skin aspects"
@@ -292,23 +309,30 @@ public final class ReportEngine {
     private record IssueKey(String displayName, String reason, List<String> aspects, boolean customSpecies) {
     }
 
-    private List<String> diagnostics(PcInventorySnapshot inventory, List<ClassifiedPokemon> included) {
+    private List<String> diagnostics(PcInventorySnapshot inventory, List<ClassifiedPokemon> all) {
         Set<String> diagnostics = new LinkedHashSet<>();
         diagnostics.add("completeness: " + inventory.completeness().label());
         diagnostics.addAll(inventory.diagnostics());
         Set<String> customSpecies = new LinkedHashSet<>();
-        for (ClassifiedPokemon entry : included) {
+        for (ClassifiedPokemon entry : all) {
             PokemonRecord pokemon = entry.pokemon();
             if (entry.skin().status() == SkinResolutionStatus.CONFLICT) {
                 diagnostics.add("skin conflict on " + pokemon.displaySpecies() + ": "
                         + String.join(", ", entry.skin().matchedAspects()));
-            } else if (entry.skin().status() == SkinResolutionStatus.UNRESOLVED) {
-                diagnostics.add("unresolved skin aspect(s) on " + pokemon.displaySpecies() + ": "
-                        + String.join(", ", entry.skin().unknownAspects()));
             }
-            if (!entry.unknownAspects().isEmpty()) {
+            List<String> potentialSkins = entry.unknownAspects().stream()
+                    .filter(AspectHeuristics::looksLikeYearToken)
+                    .toList();
+            if (!potentialSkins.isEmpty()) {
+                diagnostics.add("potential new skin aspect(s) on " + pokemon.displaySpecies() + ": "
+                        + String.join(", ", potentialSkins));
+            }
+            List<String> otherUnknowns = entry.unknownAspects().stream()
+                    .filter(aspect -> !AspectHeuristics.looksLikeYearToken(aspect))
+                    .toList();
+            if (!otherUnknowns.isEmpty()) {
                 diagnostics.add("unresolved/unknown aspect(s) on " + pokemon.displaySpecies() + ": "
-                        + String.join(", ", entry.unknownAspects()));
+                        + String.join(", ", otherUnknowns));
             }
             if (entry.customSpecies()) {
                 customSpecies.add(pokemon.speciesId());
