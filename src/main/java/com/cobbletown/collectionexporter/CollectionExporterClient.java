@@ -13,12 +13,12 @@ public final class CollectionExporterClient implements ClientModInitializer {
             runtime = CollectionExporterRuntime.createDefault();
             SwampMenuIntegration.register(runtime);
             CollectionExporterMod.LOGGER.info(
-                    "Collection Exporter initialized (catalog schema {}); Swamp Mods launcher registered",
+                    "ShareYourMons initialized (catalog schema {}); Swamp Mods launcher registered",
                     runtime.catalog().schemaVersion());
         } catch (RuntimeException failure) {
             runtime = null;
             CollectionExporterMod.LOGGER.error(
-                    "Collection Exporter core disabled: catalog or service initialization failed",
+                    "ShareYourMons core disabled: catalog or service initialization failed",
                     failure);
         }
     }

@@ -35,7 +35,7 @@ public final class CollectionExporterScreen extends Screen {
     private int copyFeedbackTicks;
 
     public CollectionExporterScreen(Screen parent, ExportController controller) {
-        super(Text.literal("Collection Exporter"));
+        super(Text.literal("ShareYourMons"));
         this.parent = parent;
         this.controller = controller;
     }

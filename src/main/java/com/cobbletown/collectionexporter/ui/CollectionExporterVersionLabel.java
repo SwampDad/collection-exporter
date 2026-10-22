@@ -5,7 +5,7 @@ import net.fabricmc.loader.api.FabricLoader;
 /** Builds the always-current version label from the installed Fabric mod metadata. */
 final class CollectionExporterVersionLabel {
     private static final String MOD_ID = "collection-exporter";
-    private static final String MOD_NAME = "Collection Exporter";
+    private static final String MOD_NAME = "ShareYourMons";
 
     private CollectionExporterVersionLabel() {
     }

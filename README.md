@@ -1,50 +1,38 @@
-# ShareYourMons
+<h1><img src="docs/images/shareyourmons-logo.png" alt="ShareYourMons icon" width="72" height="72"> ShareYourMons</h1>
 
-![ShareYourMons logo](docs/images/shareyourmons-logo.png)
+**See your entire Cobblemon collection in one place!**
 
-ShareYourMons is a client-only, read-only Cobblemon PC collection viewer and clipboard
-report tool. It was developed specifically for [Cobblemon Town](https://cobblemon-town.gitbook.io/cobblemon-town)
-and targets [Cobblemon Optimized: Your Pokémon Journey](https://www.curseforge.com/minecraft/modpacks/cobblemon-optimized-your-pokemon-journey).
+ShareYourMons makes it easy to browse your Pokémon collection, find rare Pokémon and custom
+skins, and copy your collection to share with friends.
 
-It reads PC data already synchronized to your client, then lets you browse the report in
-Minecraft or copy it to the clipboard. It is not an official Cobblemon Town or Cobblemon
-project.
-
-![ShareYourMons viewer](docs/images/collection-exporter-v0.3.0.png)
+This mod is designed exclusively for the [Cobblemon Town modpack](https://www.curseforge.com/minecraft/modpacks/cobblemon-optimized-your-pokemon-journey)
+and server. Visit the [Cobblemon Town Wiki](https://cobblemon-town.gitbook.io/cobblemon-town)
+to learn more.
 
 ## Features
 
-- Browse Custom Skins, Legend & Mythic, Shiny, or All Pokémon in a scrollable in-game report.
-- Group custom skins by collection family and keep shiny, Legendary, and Mythical labels visible.
-- Show each stored instance's PC box and position when needed.
-- Refresh the client-synchronized PC data and copy the current categorized report to the clipboard.
-- Identify partial, unavailable, and ambiguous reads instead of presenting them as complete.
+- **Custom Skins:** See special Pokémon skins, organized by collection.
+- **Legendary & Mythical:** Find Legendary and Mythical Pokémon.
+- **Shiny Pokémon:** View Shinies in one place.
+- **All Pokémon:** Browse every Pokémon stored in the PC.
+- **PC Locations:** See which box and slot each Pokémon is in.
+- **Copy to Clipboard:** Copy a list of the collection to share with others.
+- **Refresh:** Update the collection list whenever needed.
 
-## Requirements
+## Installation
 
-- Minecraft 1.21.1
-- Fabric Loader 0.18.0 or newer
-- Fabric API 0.116.7+1.21.1 or newer
-- Cobblemon 1.8.2
-- Java 21 or newer
+1. Install the latest version of the Cobblemon Town modpack.
+2. Download ShareYourMons and place it in the `mods` folder.
+3. Launch Minecraft.
+4. Open the Escape menu and select **ShareYourMons** from the Swamp Mods launcher.
 
-PC Plus and PC Exporter are not required. Install it on the client only, not the server.
-ShareYourMons is prepared for Cobblemon Town and Cobblemon Optimized: Your Pokémon Journey;
-compatibility with other servers or modpacks has not been verified.
-
-## Install
-
-1. Download the v0.3.0 JAR from the [GitHub releases page](https://github.com/SwampDad/shareyourmons/releases).
-2. Put it in your client instance's `mods` folder. Keep only one Collection Exporter JAR installed.
-3. Restart Minecraft, then open the Escape menu and choose **Collection Exporter** through the
-   Swamp Mods launcher.
+That’s it! No server installation or additional mods are needed beyond the modpack.
 
 ## Download
 
-- [GitHub Releases](https://github.com/SwampDad/shareyourmons/releases)
-- CurseForge link: available after the listing is published.
+ShareYourMons is available from [GitHub Releases](https://github.com/SwampDad/shareyourmons/releases).
+The CurseForge link will be added when the renamed build is published.
 
 ## License
 
-ShareYourMons is released under the [MIT License](LICENSE). Source and releases are hosted at
-[SwampDad/shareyourmons](https://github.com/SwampDad/shareyourmons).
+ShareYourMons is open source and released under the [MIT License](LICENSE).

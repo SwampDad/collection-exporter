@@ -47,7 +47,7 @@ public final class SwampMenuIntegration {
         SwampModRegistry.register(new SwampModEntry(
                 new SwampModDescriptor(
                         "collection-exporter",
-                        "Collection Exporter",
+                        "ShareYourMons",
                         "Copy a readable report of your Cobblemon PC collection.",
                         100),
                 parent -> new CollectionExporterScreen(parent, runtime.controller())));

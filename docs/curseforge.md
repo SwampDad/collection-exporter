@@ -1,40 +1,40 @@
-# CurseForge listing material: ShareYourMons 0.3.0
+# CurseForge listing material: ShareYourMons
 
 ## One-line summary
 
-A client-only Cobblemon PC collection viewer and clipboard report tool for Cobblemon Town.
+Browse your Cobblemon collection, find rare Pokémon and custom skins, and copy it to share.
 
 ## Project description
 
-ShareYourMons was developed specifically for [Cobblemon Town](https://cobblemon-town.gitbook.io/cobblemon-town)
-and targets [Cobblemon Optimized: Your Pokémon Journey](https://www.curseforge.com/minecraft/modpacks/cobblemon-optimized-your-pokemon-journey).
-It reads PC data already synchronized to the client and builds an in-game collection report
-that can also be copied to the clipboard.
+**See your entire Cobblemon collection in one place!**
 
-Browse Custom Skins, Legend & Mythic, Shiny, or All Pokémon in a scrollable native screen.
-Optional PC locations show each instance's one-based box and position. Refresh reads the
-current client-synchronized data again. Partial, unavailable, and ambiguous reads are shown
-as such rather than presented as complete.
+ShareYourMons makes it easy to browse your Pokémon collection, find rare Pokémon and custom
+skins, and copy your collection to share with friends.
 
-ShareYourMons is client-only and read-only. It does not require PC Plus or PC Exporter, and
-does not send packets, issue commands, change Pokémon or storage, or automate gameplay.
+This mod is designed exclusively for the [Cobblemon Town modpack](https://www.curseforge.com/minecraft/modpacks/cobblemon-optimized-your-pokemon-journey)
+and server. Visit the [Cobblemon Town Wiki](https://cobblemon-town.gitbook.io/cobblemon-town)
+to learn more.
+
+### Features
+
+- **Custom Skins:** See special Pokémon skins, organized by collection.
+- **Legendary & Mythical:** Find Legendary and Mythical Pokémon.
+- **Shiny Pokémon:** View Shinies in one place.
+- **All Pokémon:** Browse every Pokémon stored in the PC.
+- **PC Locations:** See which box and slot each Pokémon is in.
+- **Copy to Clipboard:** Copy a list of the collection to share with others.
+- **Refresh:** Update the collection list whenever needed.
 
 ## Installation
 
-Install the runtime JAR in a Fabric 1.21.1 client's `mods` folder, keeping only one Collection
-Exporter JAR installed. Restart Minecraft. Do not install it on the server.
+1. Install the latest version of the Cobblemon Town modpack.
+2. Download ShareYourMons and place it in the `mods` folder.
+3. Launch Minecraft.
+4. Open the Escape menu and select **ShareYourMons** from the Swamp Mods launcher.
 
-## Requirements
+No server installation or additional mods are needed beyond the modpack.
 
-| Requirement | Version |
-| --- | --- |
-| Minecraft | 1.21.1 |
-| Fabric Loader | 0.18.0 or newer |
-| Fabric API | 0.116.7+1.21.1 or newer |
-| Cobblemon | 1.8.2 |
-| Java | 21 or newer |
-
-## Project metadata
+## CurseForge form data
 
 | Field | Value |
 | --- | --- |
@@ -45,20 +45,16 @@ Exporter JAR installed. Restart Minecraft. Do not install it on the server.
 | Additional category | Map and Information |
 | Comments | Enabled |
 | Unlisted | No |
-| Environment | Client only |
 | License | MIT |
 | GitHub social link | https://github.com/SwampDad/shareyourmons |
-| Primary image | `docs/images/collection-exporter-v0.3.0.png` |
+| Minecraft version | 1.21.1 |
+| Mod loader | Fabric |
+| Cobblemon version | 1.8.2 |
+| Environment | Client only |
 | Project logo | `docs/images/shareyourmons-logo.png` |
+| Primary screenshot | Pending an approved ShareYourMons in-game screenshot. Do not use the Collection Exporter v0.3.0 screenshot. |
 
-## Release metadata
+## Candidate file
 
-- Version: `0.3.0`
-- Release type: Stable
-- Runtime file: `collection-exporter-0.3.0.jar`
-- Stable compatibility alias: `collection-exporter.jar`
-- SHA-256: `b2b0e2dfaa2b305611b5b41251813a1c0c246ad5f13c964c37a8d63a387284d2`
-
-## Release notes
-
-See [`release/RELEASE-NOTES-v0.3.0.md`](../release/RELEASE-NOTES-v0.3.0.md).
+The branding-correction candidate will be built as `shareyourmons-0.3.1.jar`. Do not upload it
+until its build, automated tests, and in-game name verification are complete.
