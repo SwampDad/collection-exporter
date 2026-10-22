@@ -52,7 +52,7 @@ No server installation or additional mods are needed beyond the modpack.
 | Cobblemon version | 1.8.2 |
 | Environment | Client only |
 | Project logo | `docs/images/shareyourmons-logo.png` |
-| Primary screenshot | Pending an approved ShareYourMons in-game screenshot. Do not use the Collection Exporter v0.3.0 screenshot. |
+| Primary screenshot | `docs/images/shareyourmons-v0.3.1.png` |
 
 ## Candidate file
 
