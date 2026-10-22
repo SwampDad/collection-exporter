@@ -1,7 +1,8 @@
-# Collection Exporter 0.3.0
+# ShareYourMons 0.3.0
 
 First stable release of the client-only, read-only Cobblemon collection viewer and clipboard
-report exporter for Minecraft 1.21.1.
+report exporter for Minecraft 1.21.1. This release was originally published as Collection
+Exporter; its JAR filenames remain unchanged for compatibility.
 
 ## Highlights
 

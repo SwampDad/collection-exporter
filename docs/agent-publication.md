@@ -33,3 +33,8 @@ https://github.com/SwampDad/<repository>/releases/latest/download/<repository>.j
 Publish test builds as prereleases. GitHub excludes prereleases from
 `/releases/latest`, so never advertise that URL until a normal stable release exists.
 Verify the alias and versioned JAR have the same SHA-256 before sharing the link.
+
+ShareYourMons v0.3.0 predates the repository rename and deliberately retains
+`collection-exporter.jar` as its stable alias. Do not rename or replace that asset: its
+permanent compatibility URL is
+`https://github.com/SwampDad/shareyourmons/releases/latest/download/collection-exporter.jar`.
