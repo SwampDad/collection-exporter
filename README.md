@@ -5,6 +5,8 @@
 ShareYourMons makes it easy to browse your Pokémon collection, find rare Pokémon and custom
 skins, and copy your collection to share with friends.
 
+![ShareYourMons v0.3.1](docs/images/shareyourmons-v0.3.1.png)
+
 This mod is designed exclusively for the [Cobblemon Town modpack](https://www.curseforge.com/minecraft/modpacks/cobblemon-optimized-your-pokemon-journey)
 and server. Visit the [Cobblemon Town Wiki](https://cobblemon-town.gitbook.io/cobblemon-town)
 to learn more.
